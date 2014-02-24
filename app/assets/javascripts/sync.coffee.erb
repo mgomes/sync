@@ -83,23 +83,14 @@ class Sync.Faye
   isConnected: -> @client?.getState() is "CONNECTED"
 
   subscribe: (channel, callback) -> 
-    subscription = new Sync.Faye.Subscription(@client, channel, callback)
-    @subscriptions.push(subscription)
-    subscription
+    @subscriptions.push(@client.subscribe channel, callback)
+
 
   unsubscribeAll: ->
     subscription.cancel() for subscription in @subscriptions
     @subscriptions = []
 
 
-class Sync.Faye.Subscription
-  constructor: (@client, channel, callback) ->
-    @fayeSub = @client.subscribe channel, callback
-    
-  cancel: ->
-    @fayeSub.cancel()
-    
-    
 class Sync.Pusher
 
   subscriptions: []
@@ -111,26 +102,15 @@ class Sync.Pusher
   isConnected: -> @client?.connection.state is "connected"
 
   subscribe: (channel, callback) -> 
-    subscription = new Sync.Pusher.Subscription(@client, channel, callback)
-    @channels.push(channel)
-    @subscriptions.push(subscription)
-    subscription
-
-  unsubscribeAll: ->
-    subscription.cancel() for subscription in @subscriptions
-    @subscriptions = []
-
-
-    
-class Sync.Pusher.Subscription
-  constructor: (@client, channel, callback) ->
-    @pusherSub = channel
-    
+    @subscriptions.push channel
     channel = @client.subscribe(channel)
     channel.bind 'sync', callback
-    
-  cancel: ->
-    @client.unsubscribe(@pusherSub) if @client.channel(@pusherSub)?
+
+
+  unsubscribeAll: ->
+    for subscription in @subscriptions
+      @client.unsubscribe(subscription) if @client.channel(subscription)?
+    @subscriptions = []
 
 
 class Sync.View
@@ -193,9 +173,6 @@ class Sync.Partial
     selectorEnd: null
     refetch: false
 
-    subscriptionUpdate: null
-    subscriptionDestroy: null
-
   # attributes
   #
   #   name - The String name of the partial without leading underscore
@@ -219,13 +196,13 @@ class Sync.Partial
 
 
   subscribe: ->
-    @subscriptionUpdate = @adapter.subscribe @channelUpdate, (data) =>
+    @adapter.subscribe @channelUpdate, (data) =>
       if @refetch
         @refetchFromServer (html) => @update(html)
       else
         @update(data.html)
 
-    @subscriptionDestroy = @adapter.subscribe @channelDestroy, => @remove()
+    @adapter.subscribe @channelDestroy, => @remove()
 
   
   update: (html) -> @view.beforeUpdate(html, {})
@@ -243,8 +220,6 @@ class Sync.Partial
 
 
   destroy: ->
-    @subscriptionUpdate.cancel()
-    @subscriptionDestroy.cancel()
     @$start.remove()
     @$end.remove()
     @$el?.remove()
