@@ -14,24 +14,26 @@ require File.expand_path("../dummy/config/environment.rb",  __FILE__)
 Bundler.require(:default)
 
 def setup_database
-  ActiveRecord::Base.send :extend, Sync::Model::ClassMethods
-  # ActiveRecord::Base.establish_connection(
-  #   adapter: "sqlite3",
-  #   database: "test/fixtures/test.sqlite3",
-  #   pool: 5,
-  #   timeout: 5000
-  # )
-  ActiveRecord::Base.connection.execute("DROP TABLE IF EXISTS todos")
-  ActiveRecord::Base.connection.execute("CREATE TABLE todos (id INTEGER PRIMARY KEY, name TEXT, complete BOOLEAN, user_id INTEGER)")
+  if defined?(ActiveRecord)
+    ActiveRecord::Base.send :extend, Sync::Model::ClassMethods
+    # ActiveRecord::Base.establish_connection(
+    #   adapter: "sqlite3",
+    #   database: "test/fixtures/test.sqlite3",
+    #   pool: 5,
+    #   timeout: 5000
+    # )
+    ActiveRecord::Base.connection.execute("DROP TABLE IF EXISTS todos")
+    ActiveRecord::Base.connection.execute("CREATE TABLE todos (id INTEGER PRIMARY KEY, name TEXT, complete BOOLEAN, user_id INTEGER)")
 
-  ActiveRecord::Base.connection.execute("DROP TABLE IF EXISTS users")
-  ActiveRecord::Base.connection.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, cool BOOLEAN, group_id INTEGER, project_id INTEGER, age INTEGER)")
+    ActiveRecord::Base.connection.execute("DROP TABLE IF EXISTS users")
+    ActiveRecord::Base.connection.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, cool BOOLEAN, group_id INTEGER, project_id INTEGER, age INTEGER)")
 
-  ActiveRecord::Base.connection.execute("DROP TABLE IF EXISTS groups")
-  ActiveRecord::Base.connection.execute("CREATE TABLE groups (id INTEGER PRIMARY KEY, name TEXT)")
+    ActiveRecord::Base.connection.execute("DROP TABLE IF EXISTS groups")
+    ActiveRecord::Base.connection.execute("CREATE TABLE groups (id INTEGER PRIMARY KEY, name TEXT)")
 
-  ActiveRecord::Base.connection.execute("DROP TABLE IF EXISTS projects")
-  ActiveRecord::Base.connection.execute("CREATE TABLE projects (id INTEGER PRIMARY KEY, name TEXT)")
+    ActiveRecord::Base.connection.execute("DROP TABLE IF EXISTS projects")
+    ActiveRecord::Base.connection.execute("CREATE TABLE projects (id INTEGER PRIMARY KEY, name TEXT)")
+  end
 end
 
 module TestHelper
