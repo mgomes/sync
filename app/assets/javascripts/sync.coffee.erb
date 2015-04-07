@@ -183,8 +183,8 @@ class Sync.View
 
   update: (html) ->
     $new = $($.trim(html))
-    @$el.replaceWith($new)
-    @$el = $new
+    replacedElements = $new.replaceAll(@$el)
+    @$el = replacedElements
     @afterUpdate()
     @bind()
 
